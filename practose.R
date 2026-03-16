@@ -20,4 +20,4 @@ barplot(height=vector1, col=coul)
 barplot(height = vector1,
         names.arg = c("A","B","C","D","E", "F", "G"),
         col = coul)
-  
+  hi sisi
