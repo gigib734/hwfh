@@ -1,0 +1,15 @@
+---
+title: "barrrrrrrr"
+author: "gila"
+date: "2026-03-16"
+output: html_document
+---
+##my beautiful bar graph
+```{r}
+vector1 = c(1,3,5,7,9,12,15)
+library(RColorBrewer)
+coul <- brewer.pal(5,"Set2")
+barplot(height = vector1,
+        names.arg = c("A","B","C","D","E", "F", "G"),
+        col = coul)
+``` 
