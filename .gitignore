@@ -2,14 +2,14 @@
 
 .Rproj.user
 
-.Rmd
+*.Rmd
 
-.html
+*.html
 
-.pdf
+*.pdf
 
-.png
+*.png
 
 .RData
 
-.csv
+*.csv
