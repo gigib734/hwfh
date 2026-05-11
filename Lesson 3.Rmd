@@ -1,0 +1,854 @@
+---
+title: "RSession_3"
+author: "Mandhri"
+date: "2026-05-07"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      number_sections: true
+  html_notebook:
+    theme: united
+    highlight: tango
+    toc: yes
+---
+
+### Downloading Data, Organising Files, Cleaning Data, and Plotting
+
+***
+
+## Objectives
+
+Today we will learn how to:
+
+- review last week's `iris` challenge
+- understand where files are saved on the computer
+- create project folders such as `data/` and `output/`
+- download a dataset directly into a folder
+- load `.csv` and `.rds` files into R
+- clean simple data values
+- create new columns using conditions
+- make simple plots using `ggplot2`
+
+***
+
+# Load the packages we need
+
+```{r setup}
+library(tidyverse)
+```
+
+***
+
+# 1. Quick review from last week
+
+Last week, we learned how to use:
+
+- `filter()`
+- `select()`
+- `mutate()`
+- pipes `%>%`
+- simple `ggplot2` plots
+
+We used the built-in `iris` dataset.
+
+```{r review_iris}
+head(iris)
+str(iris)
+names(iris)
+table(iris$Species)
+```
+
+## Last week's practice challenge
+
+The challenge was:
+
+1. Filter only the `virginica` flowers
+2. Select `Petal.Length` and `Petal.Width`
+3. Create a new column called `Petal.Ratio`
+4. View the first 6 rows
+
+```{r review_challenge_answer}
+virginica_ratio <- iris %>%
+  filter(Species == "virginica") %>%
+  select(Petal.Length, Petal.Width) %>%
+  mutate(Petal.Ratio = Petal.Length / Petal.Width)
+
+head(virginica_ratio)
+```
+
+***
+
+# 2. Where are my files going?
+
+Before we download or save files, we need to know where R is working.
+
+The folder R is currently using is called the **working directory**.
+
+```{r check_working_directory}
+getwd()
+```
+
+This tells us the folder where R will look for files and where it will save files by default.
+
+## List the files in the current folder
+
+```{r list_files}
+list.files()
+
+list.files("C:/Users/gbloc/Videos/Captures/")
+```
+
+If we save a file without giving a folder name, the file will be saved in the current working directory.
+
+For example:
+
+```{r save_simple_file}
+write.csv(iris, "/mnt/vol1/Intro-R/Lessons/iris_example.csv", row.names = FALSE)
+```
+
+Now check the files again.
+
+```{r list_files_after_saving}
+list.files()
+```
+
+***
+
+# 3. A better way: use project folders
+
+In real data analysis, we should keep our files organised.
+
+A simple project structure can look like this:
+
+```text
+RSession_3/
+├── RSession_3.Rmd
+├── data/
+│   └── raw datasets go here
+└── output/
+    └── cleaned data and results go here
+```
+
+We can create these folders from R.
+
+```{r create_project_folders}
+dir.create("C:/Users/gbloc/OneDrive/Desktop/practise/data", showWarnings = FALSE)
+dir.create("C:/Users/gbloc/OneDrive/Desktop/practise/output", showWarnings = FALSE)
+```
+
+Check that the folders were created.
+
+```{r check_project_folders}
+list.files()
+list.files(pattern = ".pdf")
+
+```
+
+## Why do we use folders?
+
+We use folders so that:
+
+- raw data is kept separate from output files
+- our project is easier to understand
+- we do not lose files
+- other people can run our code more easily
+
+A simple rule:
+
+```text
+data/= original datasets
+output/ = files we create during analysis
+```
+
+***
+
+# 4. Saving results into the output folder
+
+Now let save last week's result into the `output/` folder.
+
+```{r save_to_output_folder}
+write.csv(
+  virginica_ratio,
+  "/Users/gbloc/OneDrive/Desktop/practise/output/virginica_ratio.csv",
+  row.names = FALSE
+)
+```
+#no row names is better
+
+Now check the `output/` folder.
+
+```{r check_output_folder}
+list.files("/Users/gbloc/OneDrive/Desktop/practise/output")
+```
+
+***
+
+# 5. Saving as CSV and RDS
+
+There are many file types in R.
+
+Today we will use two common ones:
+
+- `.csv`
+- `.rds`
+
+## Save as a CSV file
+
+A `.csv` file is useful because it can be opened in Excel.
+
+```{r save_csv}
+write.csv(
+  virginica_ratio,
+  "/mnt/vol1/Intro-R/Lessons/output/virginica_ratio.csv",
+  row.names = FALSE
+)
+```
+
+## Save as an RDS file
+
+An `.rds` file is useful because it saves an R object exactly as it is.
+
+```{r save_rds}
+saveRDS(
+  virginica_ratio,
+  "/Users/gbloc/OneDrive/Desktop/practise/output/virginica_ratio.rds"
+)
+```
+
+## Load the CSV file
+
+```{r load_csv}
+virginica_from_csv_2 <- read.csv("/Users/gbloc/OneDrive/Desktop/practise/output/virginica_ratio.csv")
+
+head(virginica_from_csv)
+```
+
+## Load the RDS file
+
+```{r load_rds}
+virginica_from_rds <- readRDS("/Users/gbloc/OneDrive/Desktop/practise/output/virginica_ratio.rds")
+
+head(virginica_from_rds)
+```
+
+## CSV versus RDS
+
+```text
+CSV:
+- can be opened in Excel
+- good for sharing simple tables
+- sometimes changes column types
+
+RDS:
+- keeps the R object exactly as it is
+- good for saving R results
+- usually used inside R projects
+```
+
+***
+
+# 6. Downloading datasets from the internet
+
+In real research, we often download datasets from the internet.
+
+There are two common ways:
+
+1. download manually from a website
+2. download directly using R code
+
+Today, we will practise downloading a dataset directly into the `data/` folder.
+
+## Important idea
+
+When we download a file, we should decide where the file goes.
+
+For example:
+
+```text
+data/my_dataset.csv
+```
+
+means:
+
+- save the file inside the `data` folder
+- name the file `my_dataset.csv`
+
+***
+
+# 7. Download a CSV file using R
+
+For this example, we will download a public CSV file.
+
+This dataset is a simple version of the `iris` dataset from an online source.
+
+```{r download_dataset}
+download.file(
+  url = "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/datasets.csv",
+  destfile = "/Users/gbloc/OneDrive/Desktop/practise/data/jgrjo.csv")
+```
+
+Now check the `data/` folder.
+
+```{r check_data_folder_after_download}
+list.files("data")
+```
+
+## Load the downloaded dataset
+
+```{r load_downloaded_dataset}
+iris_downloaded <- read_csv("/Users/gbloc/OneDrive/Desktop/practise/data/jgrjo.csv")
+
+head(iris_downloaded)
+str(iris_downloaded)
+names(iris_downloaded)
+```
+
+Let's say that we want to remove a column called `Doc`.
+
+We can remove it using `select` and `-` from dyplyr package 
+
+```{r clean_downloaded_iris}
+iris_downloaded_clean <- iris_downloaded %>%
+  select(-Doc)
+
+head(iris_downloaded_clean)
+```
+
+***
+
+# 8. Optional: downloading with wget
+
+Another way to download files is using the command line.
+
+For example, in the terminal, we could write:
+
+```bash
+wget -o /Users/gbloc/OneDrive/Desktop/practise/output/ddfjgrjo.csv "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/datasets.csv"
+```
+#pwd to find what your working dierctory is in the  terminal (the terminal is linux )
+
+```{r download_dataset}
+download.file(
+  url = "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/datasets.csv",
+  destfile = "/Users/gbloc/OneDrive/Desktop/practise/data/jgrjo.csv")
+```
+This means:
+
+```text
+wget = download this file
+-O   = save it with this name and location
+```
+
+So this part:
+
+```bash
+-O /mnt/vol1/Intro-R/Lessons/data/iris_downloaded.csv
+```
+
+means:
+
+```text
+Save the downloaded file inside the data folder
+and call it iris_downloaded.csv
+```
+
+For this class, using `download.file()` inside R is enough.
+
+***
+
+# 9. Loading our main dataset for today
+
+For today's data cleaning and plotting section, we will use a sleep and lifestyle dataset `(https://github.com/Muhanad-husn/Sleep-Health-and-Lifestyle/raw/refs/heads/main/data.csv)`.
+
+Please make sure the file is saved inside your `data/` folder.
+
+The file name should be:
+
+```text
+Sleep_health_and_lifestyle_dataset.csv
+```
+
+So the full file path should be:
+
+```text
+data/Sleep_health_and_lifestyle_dataset.csv
+```
+
+## Check whether the file is in the data folder
+
+```{r check_sleep_file}
+list.files("data")
+```
+
+## Load the sleep dataset
+
+```{r load_sleep_dataset}
+
+download.file(
+  url = "https://github.com/Muhanad-husn/Sleep-Health-and-Lifestyle/raw/refs/heads/main/data.csv",
+  destfile = "/mnt/vol1/Intro-R/Lessons/data/Sleep_health_and_lifestyle_dataset.csv",
+  mode = "wb"
+)
+
+Sleep <- read.csv("/mnt/vol1/Intro-R/Lessons/data/Sleep_health_and_lifestyle_dataset.csv")
+
+head(Sleep)
+str(Sleep)
+names(Sleep)
+```
+
+***
+
+# 10. First checks on the sleep dataset
+
+Before cleaning or plotting, we should understand the dataset.
+
+```{r inspect_sleep}
+summary(Sleep)
+```
+
+Check the categories in some columns.
+
+```{r check_sleep_categories}
+table(Sleep$Gender)
+table(Sleep$BMI.Category)
+table(Sleep$Occupation)
+```
+
+***
+
+# 11. Simple data cleaning
+
+Sometimes the same category is written in slightly different ways.
+
+For example, the BMI category may contain both:
+
+```text
+Normal
+Normal Weight
+```
+
+We want to make this consistent.
+
+```{r clean_bmi_category}
+Sleep <- Sleep %>%
+  mutate(
+    BMI.Category = str_replace(BMI.Category, "Normal Weight", "Normal")
+  )
+
+table(Sleep$BMI.Category)
+```
+
+***
+
+# 12. Splitting one column into two columns
+
+The blood pressure column has values like:
+
+```text
+126/83
+```
+
+This contains two values:
+
+```text
+Systolic / Diastolic
+```
+
+We can split this into two columns.
+
+```{r split_blood_pressure}
+Sleep <- Sleep %>%
+  separate(
+    Blood.Pressure,
+    into = c("Systolic", "Diastolic"),
+    sep = "/")
+
+head(Sleep)
+```
+
+Now check the structure.
+
+```{r check_after_split}
+str(Sleep)
+```
+
+The new columns may be stored as text.
+
+We should convert them to numbers.
+
+```{r convert_bp_to_numeric}
+Sleep <- Sleep %>%
+  mutate(
+    Systolic = as.numeric(Systolic),
+    Diastolic = as.numeric(Diastolic)
+  )
+
+str(Sleep)
+```
+
+***
+
+# 13. Creating a new category using conditions
+
+Now we will create a new column called `Pressure.Category`.
+
+We will use simple blood pressure rules:
+
+```text
+Arterial hypertension: systolic >= 140 or diastolic >= 90
+High normal: systolic >= 130 or diastolic >= 85
+Normal: systolic >= 120 or diastolic >= 80
+Optimal: systolic < 120 and diastolic < 80
+```
+
+We can do this using `case_when()`.
+
+```{r create_pressure_category}
+Sleep <- Sleep %>%
+  mutate(
+    Pressure.Category = case_when(
+      Systolic >= 140 | Diastolic >= 90 ~ "Arterial hypertension",
+      Systolic >= 130 | Diastolic >= 85 ~ "High normal",
+      Systolic >= 120 | Diastolic >= 80 ~ "Normal",
+      Systolic < 120 & Diastolic < 80 ~ "Optimal",
+      TRUE ~ NA_character_
+    )
+  )
+
+table(Sleep$Pressure.Category)
+```
+
+## Why do we use `case_when()`?
+
+`case_when()` is useful when we want to create a new column based on conditions.
+
+It is easier to read than many nested `ifelse()` statements.
+
+***
+
+# 14. Summarising the cleaned data
+
+Now we can summarise the data by group.
+
+For example, average sleep duration by gender.
+
+```{r summarise_sleep_by_gender}
+Sleep_gender_summary <- Sleep %>%
+  group_by(Gender) %>%
+  summarise(
+    Mean.Sleep.Duration = mean(Sleep.Duration, na.rm = TRUE),
+    Mean.Quality.of.Sleep = mean(Quality.of.Sleep, na.rm = TRUE),
+    Mean.Stress.Level = mean(Stress.Level, na.rm = TRUE),
+    Count = n())
+
+Sleep_gender_summary
+```
+
+Average sleep duration by BMI category.
+
+```{r summarise_sleep_by_bmi}
+Sleep_bmi_summary <- Sleep %>%
+  group_by(BMI.Category) %>%
+  summarise(
+    Mean.Sleep.Duration = mean(Sleep.Duration, na.rm = TRUE),
+    Mean.Quality.of.Sleep = mean(Quality.of.Sleep, na.rm = TRUE),
+    Mean.Stress.Level = mean(Stress.Level, na.rm = TRUE),
+    Count = n())
+
+Sleep_bmi_summary
+```
+
+***
+
+# 15. Plot 1: Sleep quality and sleep duration
+
+Let us look at the relationship between sleep quality and sleep duration.
+
+```{r plot_sleep_quality_duration}
+ggplot(Sleep, aes(x = Quality.of.Sleep, y = Sleep.Duration, colour = Gender)) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    title = "Sleep Quality and Sleep Duration",
+    x = "Quality of Sleep",
+    y = "Sleep Duration"
+  ) +
+  theme_classic()
+```
+
+***
+
+# 16. Plot 2: Sleep quality and stress level
+
+```{r plot_sleep_quality_stress}
+ggplot(Sleep, aes(x = Quality.of.Sleep, y = Stress.Level, colour = Gender)) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Sleep Quality and Stress Level",
+    x = "Quality of Sleep",
+    y = "Stress Level"
+  ) +
+  theme_classic()
+```
+
+***
+
+# 17. Plot 3: Daily steps and sleep quality
+
+```{r plot_steps_sleep_quality}
+ggplot(Sleep, aes(x = Daily.Steps, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", se = TRUE) +
+  labs(
+    title = "Daily Steps and Sleep Quality",
+    x = "Daily Steps",
+    y = "Quality of Sleep"
+  ) +
+  theme_classic()
+```
+
+## Note: Choosing between `lm` and `loess`
+
+Use `lm` when you want to show a **straight-line trend**.
+
+The `lm` method draws the best straight line through the data points. It is useful when we think the relationship between two variables generally increases or decreases in a mostly straight pattern.
+
+Use `loess` when you want to show a **curved trend**.
+
+The `loess` method draws a smooth curve that follows the local pattern in the data. It is useful when the relationship may not be perfectly straight, or when we want to explore the overall shape of the data.
+
+***
+
+# 18. Plot 4: Daily steps and sleep quality by BMI category
+
+Before plotting, we can turn `BMI.Category` into a factor so the order is clearer.
+
+```{r factor_bmi_category}
+Sleep <- Sleep %>%
+  mutate(
+    BMI.Category_1 = factor(
+      BMI.Category,
+      levels = c("Normal", "Overweight", "Obese")
+    )
+  )
+```
+
+Now make the plot.
+
+First lets see how the plots change with and without factorising the `BMI.Category`. 
+
+
+```{r plot_steps_sleep_quality_bmi}
+
+# With BMI.Category as factors
+
+ggplot(Sleep, aes(x = Daily.Steps, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", se = TRUE) +
+  facet_wrap(~BMI.Category_1) +
+  labs(
+    title = "Daily Steps and Sleep Quality by BMI Category",
+    x = "Daily Steps",
+    y = "Quality of Sleep"
+  ) +
+  theme_classic()
+
+
+# Without BMI.Category as factors
+
+ggplot(Sleep, aes(x = Daily.Steps, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", se = TRUE) +
+  facet_wrap(~BMI.Category) +
+  labs(
+    title = "Daily Steps and Sleep Quality by BMI Category",
+    x = "Daily Steps",
+    y = "Quality of Sleep"
+  ) +
+  theme_classic()
+
+##################################################################################
+
+# using lm = linear model
+
+ggplot(Sleep, aes(x = Daily.Steps, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  facet_wrap(~BMI.Category_1) +
+  labs(
+    title = "Daily Steps and Sleep Quality by BMI Category",
+    x = "Daily Steps",
+    y = "Quality of Sleep"
+  ) +
+  theme_classic()
+
+
+#using loess = local smooth curve
+
+ggplot(Sleep, aes(x = Daily.Steps, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", se = TRUE) +
+  facet_wrap(~BMI.Category_1) +
+  labs(
+    title = "Daily Steps and Sleep Quality by BMI Category",
+    x = "Daily Steps",
+    y = "Quality of Sleep"
+  ) +
+  theme_classic()
+
+
+```
+
+***
+
+# 19. Plot 5: Average stress level by occupation
+
+For bar plots, it is often better to summarise the data first.
+
+```{r summarise_stress_by_occupation}
+Occupation_summary <- Sleep %>%
+  group_by(Occupation) %>%
+  summarise(
+    Mean.Stress.Level = mean(Stress.Level, na.rm = TRUE),
+    Count = n()
+  ) %>%
+  arrange(desc(Mean.Stress.Level))
+
+Occupation_summary
+```
+
+Now plot the summary table.
+
+```{r plot_stress_by_occupation}
+ggplot(Occupation_summary, aes(x = Occupation, y = Mean.Stress.Level)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average Stress Level by Occupation",
+    x = "Occupation",
+    y = "Average Stress Level"
+  ) +
+  theme_classic()
+```
+
+***
+
+# 20. Save the cleaned dataset
+
+Now that we have cleaned the sleep dataset, we can save it.
+
+## Save as CSV
+
+```{r save_clean_sleep_csv}
+write.csv(
+  Sleep,
+  "/mnt/vol1/Intro-R/Lessons/output/Sleep_cleaned.csv",
+  row.names = FALSE
+)
+```
+
+## Save as RDS
+
+```{r save_clean_sleep_rds}
+saveRDS(
+  Sleep,
+  "/mnt/vol1/Intro-R/Lessons/output/Sleep_cleaned.rds"
+)
+```
+
+Check the output folder.
+
+```{r check_final_output}
+list.files("output")
+```
+
+***
+
+# 21. Practice challenge
+
+Try the following:
+
+1. Create a new object called `Sleep_active`
+2. Keep only people with `Daily.Steps` greater than or equal to 7000
+3. Select these columns:
+    - `Gender`
+    - `Age`
+    - `Occupation`
+    - `Sleep.Duration`
+    - `Quality.of.Sleep`
+    - `Daily.Steps`
+    - `BMI.Category`
+4. Create a new column called `Sleep.Efficiency.Score`
+5. Calculate it as:
+
+```text
+Quality.of.Sleep * Sleep.Duration
+```
+
+6. View the first 6 rows
+7. Save the result into the `output/` folder as:
+
+```text
+Sleep_active.csv
+```
+
+```{r practice_challenge, eval=FALSE}
+Sleep_active <- Sleep %>%
+  filter(Daily.Steps >= 7000) %>%
+  select(
+    Gender,
+    Age,
+    Occupation,
+    Sleep.Duration,
+    Quality.of.Sleep,
+    Daily.Steps,
+    BMI.Category
+  ) %>%
+  mutate(
+    Sleep.Efficiency.Score = Quality.of.Sleep * Sleep.Duration
+  )
+
+head(Sleep_active)
+
+write.csv(
+  Sleep_active,
+  "output/Sleep_active.csv",
+  row.names = FALSE
+)
+```
+
+***
+
+# 22. Milestone check
+
+Today, we learned how to:
+
+- check the current working directory using `getwd()`
+- list files using `list.files()`
+- create folders using `dir.create()`
+- save files into specific folders
+- download a dataset using `download.file()`
+- understand where downloaded files go
+- load `.csv` and `.rds` files
+- clean simple text values using `str_replace()`
+- split one column into two columns using `separate()`
+- convert text columns to numbers using `as.numeric()`
+- create categories using `case_when()`
+- summarise data using `group_by()` and `summarise()`
+- create simple plots using `ggplot2`
+- save cleaned datasets into the `output/` folder
+
+These are important skills because most real data analysis projects involve downloading, organising, cleaning, analysing, plotting, and saving data.
+
+***
+
+### System Information
+
+```{r}
+Sys.info()
+```
