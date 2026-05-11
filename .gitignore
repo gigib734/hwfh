@@ -2,7 +2,8 @@
 
 .Rproj.user
 
-*.Rmd
+
+#*.Rmd
 
 *.html
 
